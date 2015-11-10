@@ -19,7 +19,7 @@ public class boxManager : MonoBehaviour {
     List<List<Quaternion>> rotArray = new List<List<Quaternion>>();
 
     int scroll = 0;
-    bool isPaused;
+	bool isPaused, rewind;
     float tick = 0;
 	// Use this for initialization
 	void Start () {
@@ -28,57 +28,75 @@ public class boxManager : MonoBehaviour {
 
     IEnumerator record()
     {
-        while (!isPaused)
-        {
-            updateVariables();
-            yield return new WaitForSeconds(updateTime);
-        }
+            while (!isPaused)
+            {
+                updateVariables();
+                yield return new WaitForSeconds(updateTime);
+            }
     }
 
 	// Update is called once per frame
 	void Update () {
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SliderObject.interactable = true;
-            SliderObject.maxValue = posArray.Count;
-            SliderObject.value = posArray.Count-1;
-            //lengthText.text = ""+(tick * updateTime);
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			SliderObject.interactable = true;
+			SliderObject.maxValue = posArray.Count;
+			SliderObject.value = posArray.Count - 1;
+			//lengthText.text = ""+(tick * updateTime);
+			rewind = false;
+			scroll = posArray.Count;
+			isPaused = !isPaused;
+			for (int i = 0; i < boxes.Length; i++) {
+				Rigidbody test = boxes [i].GetComponent<Rigidbody> ();
+				test.velocity = Vector3.zero;
+			}
+		}
 
-            scroll = posArray.Count;
-            isPaused = !isPaused;
-        }
-
-        if (Input.GetKey(KeyCode.W))
+		/*if (Input.GetKey(KeyCode.W))
         {
             GuiImage.sprite = fwd;
             scroll++;
             if (scroll >= posArray.Count)
                 scroll = posArray.Count -1;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            GuiImage.sprite = back;
-            scroll--;
-            if (scroll < 1)
-                scroll = 1;
-        }
-        
-        if (isPaused)
-        {
-            GuiImage.sprite = pause;
-            for (int i = 0; i < boxes.Length; i++)
-            {
-                boxes[i].transform.position = posArray[scroll-1][i];
-                boxes[i].transform.rotation = rotArray[scroll-1][i];
-            }
-        }
-        else
-        {
-            SliderObject.interactable = false;
-            GuiImage.sprite = play;
-        }
-    }
+        }*/
+
+		if (rewind) {
+			GuiImage.sprite = back;
+			scroll--;
+			if (scroll < 1)
+				scroll = 1;
+			for (int i = 0; i < boxes.Length; i++) {
+				boxes [i].transform.position = posArray [scroll - 1] [i];
+				boxes [i].transform.rotation = rotArray [scroll - 1] [i];
+			}
+		}
+
+		if (isPaused) {
+			GuiImage.sprite = pause;
+			for (int i = 0; i < boxes.Length; i++) {
+				boxes [i].transform.position = posArray [scroll - 1] [i];
+				boxes [i].transform.rotation = rotArray [scroll - 1] [i];
+			}
+		} else {
+			SliderObject.interactable = false;
+			GuiImage.sprite = play;
+		}
+
+		if (Input.GetKeyDown (KeyCode.R)) {
+			for (int i = 0; i < boxes.Length; i++) {
+				Rigidbody test = boxes [i].GetComponent<Rigidbody> ();
+				test.velocity = Vector3.zero;
+			}
+			rewind = !rewind;
+			isPaused = rewind;
+			scroll = posArray.Count;
+			if (rewind) {
+				scroll = posArray.Count;
+			} else {
+				StartCoroutine (record ());  
+			}
+		}
+	}
 
     void updateVariables()
     {
@@ -99,5 +117,4 @@ public class boxManager : MonoBehaviour {
     {
         scroll = (int)newscroll;
     }
-
 }
