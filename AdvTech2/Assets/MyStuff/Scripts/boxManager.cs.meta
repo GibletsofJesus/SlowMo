@@ -1,10 +1,18 @@
 fileFormatVersion: 2
 guid: 62bfe92660b1ac6418104a9dacf583cf
-timeCreated: 1446668786
+timeCreated: 1447689039
 licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - lengthText: {instanceID: 0}
+  - GuiImage: {instanceID: 0}
+  - play: {fileID: 21300002, guid: 3a29e65ca80165c46917369fe22c73c1, type: 3}
+  - pause: {fileID: 21300000, guid: 3a29e65ca80165c46917369fe22c73c1, type: 3}
+  - stop: {fileID: 21300006, guid: 3a29e65ca80165c46917369fe22c73c1, type: 3}
+  - fwd: {fileID: 21300004, guid: 3a29e65ca80165c46917369fe22c73c1, type: 3}
+  - back: {fileID: 21300008, guid: 3a29e65ca80165c46917369fe22c73c1, type: 3}
+  - SliderObject: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
