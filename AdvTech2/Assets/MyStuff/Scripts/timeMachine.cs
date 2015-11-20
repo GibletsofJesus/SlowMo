@@ -144,7 +144,7 @@ public class timeMachine : MonoBehaviour
             }
         }
         #endregion
-
+        
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             if (rewindSpeed == -1)
