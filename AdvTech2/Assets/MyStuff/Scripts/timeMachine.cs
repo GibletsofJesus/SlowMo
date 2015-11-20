@@ -3,15 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class boxManager : MonoBehaviour
+public class timeMachine : MonoBehaviour
 {
 
     public GameObject[] boxes;
-    public Text lengthText;
+    public Text lengthText, UiRewindSpeed;
     public Image GuiImage;
     public Sprite play, pause, stop, fwd, back;
     public Slider SliderObject;
     public float updateTime = 0.01f;
+    public float rewindDuration = 5.0f;
+
+    int rewindSpeed=-1;
 
     List<Vector3> pos = new List<Vector3>();
     List<Quaternion> rot = new List<Quaternion>();
@@ -53,7 +56,7 @@ public class boxManager : MonoBehaviour
 
     IEnumerator record()
     {
-        while (!isPaused)
+        while (rewindSpeed == -1)
         {
             updateVariables();
             yield return new WaitForSeconds(updateTime);
@@ -87,18 +90,30 @@ public class boxManager : MonoBehaviour
         }
         #endregion
 
-        #region rewind function
-        if (rewind)
+        #region Rewind function
+        if (rewindSpeed > 0)
         {
             GuiImage.sprite = back;
-            scroll--;
+            UiRewindSpeed.text = "x"+rewindSpeed;
+            for (int l = 0; l < rewindSpeed; l++)
+            {
+                scroll--;
+                if (scroll * updateTime > rewindDuration)
+                {
+                    if (scroll < posArray.Count - (rewindDuration / updateTime))
+                    {
+                        scroll++;
+                    }
+                }
+            }
             if (scroll < 2)
                 scroll = 2;
+
             for (int i = 0; i < physicsObjects.Count; i++)
             {
                 physicsObjects[i].transform.position = posArray[scroll - 1][i];
                 physicsObjects[i].transform.rotation = rotArray[scroll - 1][i];
-                physicsObjects[i].GetComponent<Rigidbody>().angularVelocity= angVelArray[scroll - 1][i];
+                physicsObjects[i].GetComponent<Rigidbody>().angularVelocity = angVelArray[scroll - 1][i];
                 physicsObjects[i].GetComponent<Rigidbody>().velocity = velArray[scroll - 1][i];
             }
             for (int i = 0; i < animatedObjects.Count; i++)
@@ -130,11 +145,53 @@ public class boxManager : MonoBehaviour
         }
         #endregion
 
-        #region Scrub through function
-        if (isPaused)
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            if (rewindSpeed == -1)
+            {
+                SliderObject.interactable = true;
+                SliderObject.maxValue = posArray.Count;
+                SliderObject.value = posArray.Count - 1;
+                scroll = posArray.Count;
+            }
+
+            if (rewindSpeed > 0)
+                rewindSpeed = rewindSpeed * 2;
+            else
+                rewindSpeed++;
+            Debug.Log(rewindSpeed);
+        }
+    
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            if (rewindSpeed == 0)
+            {
+                rewindSpeed--;
+                GuiImage.sprite = play;
+                StartCoroutine(record());
+            }
+            else if(rewindSpeed > 1)
+            {
+                rewindSpeed = rewindSpeed / 2;
+            }
+            else
+            {
+                SliderObject.interactable = true;
+                SliderObject.maxValue = posArray.Count;
+                SliderObject.value = posArray.Count - 1;
+                rewindSpeed--;
+                if (rewindSpeed < -1)
+                    rewindSpeed = -1;
+            }
+            Debug.Log(rewindSpeed);
+        }
+
+        #region If Paused
+        if (rewindSpeed == 0)
         {
             StopCoroutine(record());
             GuiImage.sprite = pause;
+            UiRewindSpeed.text = "";
             for (int i = 0; i < physicsObjects.Count; i++)
             {
                 physicsObjects[i].transform.position = posArray[scroll - 1][i];
@@ -179,7 +236,15 @@ public class boxManager : MonoBehaviour
         velArray.Add(new List<Vector3>(vel));
         playbackTimeArray.Add(new List<float>(playbackTime));
         lengthText.text = "Current Tick:" + scroll + "\nTotal Ticks " + tick;
+        //scroll++;
         tick++;
+
+        //ticks * update time = time in seconds we've been recording
+        if (tick*updateTime > rewindDuration)
+        {
+
+        }
+
     }
 
     public void setScroll(float newscroll)
