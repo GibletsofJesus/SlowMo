@@ -84,7 +84,6 @@ public class timeMachine : MonoBehaviour
 
             for (int i = 0; i < animatedObjects.Count; i++)
             {
-                Animator anim = animatedObjects[i].GetComponent<Animator>();
                 animatedObjects[i].GetComponent<Animator>().StopPlayback();
             }
         }
