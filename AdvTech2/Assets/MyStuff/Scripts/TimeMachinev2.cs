@@ -1,19 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class TimeMachinev2 : MonoBehaviour {
     
     public float updateTime = 0.01f;
     public float rewindDuration = 5.0f;
+    public Text recordingText;
 
+    [HideInInspector]
+    public int scroll = 0;
+    bool recording = true;
     int rewindSpeed = -1;
+    public int rewindSpeed2 = 2;
     
     List<GameObject> rewindableObjects = new List<GameObject>();
     public List<timeline> timelines = new List<timeline>();
     
-    public int scroll = 0;
-    float tick = 0;
     // Use this for initialization
     void Start()
     {
@@ -33,12 +37,13 @@ public class TimeMachinev2 : MonoBehaviour {
 
     IEnumerator record()
     {
-        while (rewindSpeed == -1)
+        while (recording)
         {
             for (int i = 0; i < rewindableObjects.Count; i++)
             {
                 updateVariables(rewindableObjects[i]);
             }
+            scroll++;
             yield return new WaitForSeconds(updateTime);
         }
     }
@@ -49,7 +54,6 @@ public class TimeMachinev2 : MonoBehaviour {
         public Quaternion rotation;
         public Vector3 AngularVelocity;
         public Vector3 velocity;
-        //public float timeTick;
     }
 
     public class timeline
@@ -57,17 +61,18 @@ public class TimeMachinev2 : MonoBehaviour {
         public List<rewindData> timeData = new List<rewindData>();
         public string id;
         public bool rewind;
+        public int scroller = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.F))
-            rewindSpeed = 1;
+        recordingText.enabled = recording;
+
+        if (Input.GetKeyDown(KeyCode.F))
+            recording = !recording;
             
         rewinder();
-        tick++;
-        Debug.Log(scroll);
     }
 
     void updateVariables(GameObject input)
@@ -77,7 +82,6 @@ public class TimeMachinev2 : MonoBehaviour {
         sample.rotation = input.transform.rotation;
         sample.AngularVelocity = input.GetComponent<Rigidbody>().angularVelocity;
         sample.velocity = input.GetComponent<Rigidbody>().velocity;
-        //sample.timeTick = tick;
         for (int i=0; i < timelines.Count; i++)
         {
             if (timelines[i].id == input.name)
@@ -87,28 +91,28 @@ public class TimeMachinev2 : MonoBehaviour {
 
     void rewinder()
     {
-        for (int l = 0; l < rewindSpeed; l++)
-        {
-            scroll--;
-            if (scroll * updateTime > rewindDuration)
-            {
-                if (scroll < timelines[1].timeData.Count- (rewindDuration / updateTime))
-                {
-                    scroll++;
-                }
-            }
-        }
-        if (scroll < 2)
-            scroll = 2;
-
         for (int i = 0; i < timelines.Count; i++)
         {
             if (timelines[i].rewind)
             {
-                rewindableObjects[i].transform.position = timelines[i].timeData[scroll - 1].position;
-                rewindableObjects[i].transform.rotation = timelines[i].timeData[scroll - 1].rotation;
-                rewindableObjects[i].GetComponent<Rigidbody>().angularVelocity = timelines[i].timeData[scroll - 1].AngularVelocity;
-                rewindableObjects[i].GetComponent<Rigidbody>().velocity = timelines[i].timeData[scroll - 1].velocity;
+                for (int l = 0; l < rewindSpeed2; l++)
+                {
+                    timelines[i].scroller--;
+                    if (timelines[i].scroller * updateTime > rewindDuration)
+                    {
+                        if (timelines[i].scroller < timelines[1].timeData.Count - (rewindDuration / updateTime))
+                        {
+                            timelines[i].rewind = false;
+                            //timelines[i].scroller++;
+                        }
+                    }
+                }
+                if (timelines[i].scroller < 2)
+                    timelines[i].scroller = 2;
+                rewindableObjects[i].transform.position = timelines[i].timeData[timelines[i].scroller - 1].position;
+                rewindableObjects[i].transform.rotation = timelines[i].timeData[timelines[i].scroller - 1].rotation;
+                rewindableObjects[i].GetComponent<Rigidbody>().angularVelocity = timelines[i].timeData[timelines[i].scroller - 1].AngularVelocity;
+                rewindableObjects[i].GetComponent<Rigidbody>().velocity = timelines[i].timeData[timelines[i].scroller - 1].velocity;
             }
         }
     }

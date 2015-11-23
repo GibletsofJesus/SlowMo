@@ -8,6 +8,7 @@ public class timeBomb : MonoBehaviour
     Vector3 hitPosition;
     List<GameObject> collidedObjects = new List<GameObject>();
     public Color highLightColour;
+    Color oldColour;
     public float expireTime;
     //public GameObject timeMachine;
     TimeMachinev2 myTimeMachine;
@@ -23,29 +24,27 @@ public class timeBomb : MonoBehaviour
         timer += 1.0f * Time.deltaTime;
         if (timer > expireTime)
         {
-            Destroy(gameObject);
             for (int i = 0; i < collidedObjects.Count; i++)
             {
+                collidedObjects[i].GetComponent<Renderer>().material.color = oldColour;
                 for (int j = 0; j < myTimeMachine.timelines.Count; j++)
                 {
-                    if (myTimeMachine.timelines[i].id == collidedObjects[i].name)
-                        myTimeMachine.timelines[i].rewind = true;
+                    if (myTimeMachine.timelines[j].id == collidedObjects[i].name)
+                        myTimeMachine.timelines[j].rewind = false;
                 }
             }
+            Destroy(gameObject);
         }
 
-            if (hasCollided)
+        if (hasCollided)
         {
-            transform.position = hitPosition;
-        }
-
-        for (int i = 0; i < collidedObjects.Count; i++)
-        {
-            for(int j=0; j < myTimeMachine.timelines.Count; j++)
+            /*for (int i = 0; i < collidedObjects.Count; i++)
             {
-                if (myTimeMachine.timelines[j].id == collidedObjects[i].name)
-                    myTimeMachine.timelines[j].rewind = true;
+                Physics.IgnoreCollision(collidedObjects[i].GetComponent<Collider>(), GetComponent<Collider>());
             }
+            if (transform.position.y < 1)
+                transform.Translate(0, 1, 0);*/
+            transform.position = hitPosition;
         }
     }
 
@@ -54,8 +53,8 @@ public class timeBomb : MonoBehaviour
         if (collision.gameObject.CompareTag("Phys"))
         {
             collidedObjects.Add(collision.gameObject);
+            oldColour = collision.gameObject.GetComponent<Renderer>().material.color;
             collision.gameObject.GetComponent<Renderer>().material.color = highLightColour;
-            myTimeMachine.scroll = myTimeMachine.timelines[1].timeData.Count;
         }
 
         gameObject.GetComponent<Renderer>().material.SetFloat("_Alpha", 0);
@@ -63,6 +62,21 @@ public class timeBomb : MonoBehaviour
         transform.localScale = new Vector3(2.5f, 2.5f, 2.5f);
         if (hitPosition == Vector3.zero)
             hitPosition = transform.position;
-        
+
+        for (int i = 0; i < collidedObjects.Count; i++)
+        {
+            for (int j = 0; j < myTimeMachine.timelines.Count; j++)
+            {
+                if (myTimeMachine.timelines[j].id == collidedObjects[i].name)
+                {
+                    if (!myTimeMachine.timelines[j].rewind)
+                    {
+                        myTimeMachine.timelines[j].rewind = true;
+                        myTimeMachine.timelines[j].scroller = myTimeMachine.scroll - 1;
+                    }
+                }
+            }
+        }
+
     }
 }
