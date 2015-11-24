@@ -40,7 +40,7 @@ public class FPSmovement : MonoBehaviour {
         {
             posX += 1;
         }
-
+        
         if (Input.GetKey(KeyCode.LeftShift))
         {
             gameObject.transform.Translate(0, 0.1f, 0);

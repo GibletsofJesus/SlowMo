@@ -7,10 +7,9 @@ public class timeBomb : MonoBehaviour
     bool hasCollided = false;
     Vector3 hitPosition;
     List<GameObject> collidedObjects = new List<GameObject>();
-    public Color highLightColour;
-    Color oldColour;
+    public Material rewindMaterial, barrelMaterial;
     public float expireTime;
-    //public GameObject timeMachine;
+    bool sticky;
     TimeMachinev2 myTimeMachine;
     float timer;
 
@@ -26,7 +25,7 @@ public class timeBomb : MonoBehaviour
         {
             for (int i = 0; i < collidedObjects.Count; i++)
             {
-                collidedObjects[i].GetComponent<Renderer>().material.color = oldColour;
+                collidedObjects[i].GetComponent<Renderer>().material = barrelMaterial;
                 for (int j = 0; j < myTimeMachine.timelines.Count; j++)
                 {
                     if (myTimeMachine.timelines[j].id == collidedObjects[i].name)
@@ -38,13 +37,20 @@ public class timeBomb : MonoBehaviour
 
         if (hasCollided)
         {
-            /*for (int i = 0; i < collidedObjects.Count; i++)
+            if (myTimeMachine.sticky)
             {
-                Physics.IgnoreCollision(collidedObjects[i].GetComponent<Collider>(), GetComponent<Collider>());
+                for (int i = 0; i < collidedObjects.Count; i++)
+                {
+                    Physics.IgnoreCollision(collidedObjects[i].GetComponent<Collider>(), GetComponent<Collider>());
+                }
+                if (transform.position.y < 1)
+                    transform.Translate(0, 1, 0);
             }
-            if (transform.position.y < 1)
-                transform.Translate(0, 1, 0);*/
-            transform.position = hitPosition;
+            else
+            {
+                transform.position = hitPosition;
+            }
+
         }
     }
 
@@ -53,8 +59,7 @@ public class timeBomb : MonoBehaviour
         if (collision.gameObject.CompareTag("Phys"))
         {
             collidedObjects.Add(collision.gameObject);
-            oldColour = collision.gameObject.GetComponent<Renderer>().material.color;
-            collision.gameObject.GetComponent<Renderer>().material.color = highLightColour;
+            collision.gameObject.GetComponent<Renderer>().material = rewindMaterial;
         }
 
         gameObject.GetComponent<Renderer>().material.SetFloat("_Alpha", 0);

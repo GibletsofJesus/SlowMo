@@ -12,9 +12,10 @@ public class TimeMachinev2 : MonoBehaviour {
     [HideInInspector]
     public int scroll = 0;
     bool recording = true;
-    int rewindSpeed = -1;
-    public int rewindSpeed2 = 2;
-    
+    public int rewindSpeed = 2;
+
+    public bool sticky; //Toggle sticky bombs
+
     List<GameObject> rewindableObjects = new List<GameObject>();
     public List<timeline> timelines = new List<timeline>();
     
@@ -67,6 +68,9 @@ public class TimeMachinev2 : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.B))
+            sticky = !sticky;
+
         recordingText.enabled = recording;
 
         if (Input.GetKeyDown(KeyCode.F))
@@ -95,11 +99,12 @@ public class TimeMachinev2 : MonoBehaviour {
         {
             if (timelines[i].rewind)
             {
-                for (int l = 0; l < rewindSpeed2; l++)
+                for (int l = 0; l < rewindSpeed; l++)
                 {
                     timelines[i].scroller--;
                     if (timelines[i].scroller * updateTime > rewindDuration)
                     {
+                        timelines[i].rewind = false;
                         if (timelines[i].scroller < timelines[1].timeData.Count - (rewindDuration / updateTime))
                         {
                             timelines[i].rewind = false;
@@ -108,7 +113,10 @@ public class TimeMachinev2 : MonoBehaviour {
                     }
                 }
                 if (timelines[i].scroller < 2)
+                {
+                    //timelines[i].rewind = false;
                     timelines[i].scroller = 2;
+                }
                 rewindableObjects[i].transform.position = timelines[i].timeData[timelines[i].scroller - 1].position;
                 rewindableObjects[i].transform.rotation = timelines[i].timeData[timelines[i].scroller - 1].rotation;
                 rewindableObjects[i].GetComponent<Rigidbody>().angularVelocity = timelines[i].timeData[timelines[i].scroller - 1].AngularVelocity;
