@@ -7,7 +7,6 @@ public class timeBomb : MonoBehaviour
     bool hasCollided = false;
     Vector3 hitPosition;
     List<GameObject> collidedObjects = new List<GameObject>();
-    public Material rewindMaterial, barrelMaterial;
     public float expireTime = 5;
     TimeMachinev2 myTimeMachine;
     float timer;
@@ -24,7 +23,6 @@ public class timeBomb : MonoBehaviour
         {
             for (int i = 0; i < collidedObjects.Count; i++)
             {
-                collidedObjects[i].GetComponent<Renderer>().material = barrelMaterial;
                 for (int j = 0; j < myTimeMachine.timelines.Count; j++)
                 {
                     if (myTimeMachine.timelines[j].id == collidedObjects[i].name)
@@ -58,7 +56,6 @@ public class timeBomb : MonoBehaviour
         if (collision.gameObject.CompareTag("Phys"))
         {
             collidedObjects.Add(collision.gameObject);
-            collision.gameObject.GetComponent<Renderer>().material = rewindMaterial;
         }
 
         gameObject.GetComponent<Renderer>().material.SetFloat("_Alpha", 0);

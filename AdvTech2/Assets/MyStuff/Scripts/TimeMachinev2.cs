@@ -8,6 +8,9 @@ public class TimeMachinev2 : MonoBehaviour {
     public float updateTime = 0.01f;
     public float rewindDuration = 5.0f;
     public Text recordingText;
+    public Text stickyText;
+
+    public bool resumeWhenFinishedRewinding;
 
     [HideInInspector]
     public int scroll = 0;
@@ -74,7 +77,19 @@ public class TimeMachinev2 : MonoBehaviour {
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.B))
+        {
             sticky = !sticky;
+            if (sticky)
+            {
+                stickyText.text = "Enabled";
+                stickyText.color = Color.green;
+            }
+            else
+            {
+                stickyText.text = "Disabled";
+                stickyText.color = Color.red;
+            }
+        }
 
         recordingText.enabled = recording;
 
@@ -133,6 +148,10 @@ public class TimeMachinev2 : MonoBehaviour {
         {
             if (timelines[i].rewind)
             {
+                //Set colour
+                rewindableObjects[i].GetComponent<Renderer>().material.color = Color.cyan;
+
+                //Rewind a little
                 for (int l = 0; l < rewindSpeed; l++)
                 {
                     timelines[i].scroller--;
@@ -148,8 +167,9 @@ public class TimeMachinev2 : MonoBehaviour {
                 }
                 if (timelines[i].scroller < 2)
                 {
-                    //timelines[i].rewind = false;
                     timelines[i].scroller = 2;
+                    if (resumeWhenFinishedRewinding)
+                        timelines[i].rewind = false;
                 }
                 #region Set values
                 rewindableObjects[i].transform.position = timelines[i].timeData[timelines[i].scroller - 1].position;
@@ -179,6 +199,7 @@ public class TimeMachinev2 : MonoBehaviour {
             }
             else
             {
+                rewindableObjects[i].GetComponent<Renderer>().material.color = Color.red;
                 AudioSource normalAudio = rewindableObjects[i].GetComponent<AudioSource>();
                 if (normalAudio != null)
                 {
