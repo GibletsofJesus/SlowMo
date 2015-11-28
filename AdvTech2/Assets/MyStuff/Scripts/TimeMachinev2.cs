@@ -51,6 +51,11 @@ public class TimeMachinev2 : MonoBehaviour {
 
     public struct rewindData
     {
+        //audio
+        public float timesample;
+        public bool isPlaying;
+
+        //physics
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 AngularVelocity;
@@ -75,18 +80,47 @@ public class TimeMachinev2 : MonoBehaviour {
 
         if (Input.GetKeyDown(KeyCode.F))
             recording = !recording;
-            
+
         rewinder();
+
     }
 
     void updateVariables(GameObject input)
     {
         rewindData sample;
+
+        #region audio
+        AudioSource audioComp = input.GetComponent<AudioSource>();
+        if (audioComp != null)
+        {
+            sample.isPlaying = audioComp.isPlaying;
+            sample.timesample = audioComp.time;
+        }
+        else
+        {
+            sample.isPlaying = false;
+            sample.timesample = 0;
+        }
+        #endregion
+
+        #region physics
+        Rigidbody rigidComp = input.GetComponent<Rigidbody>();
+        if (rigidComp != null)
+        {
+            sample.AngularVelocity = rigidComp.angularVelocity;
+            sample.velocity = rigidComp.velocity;
+        }
+        else
+        {
+            sample.AngularVelocity = Vector3.zero;
+            sample.velocity = Vector3.zero;
+        }
+        #endregion
+
         sample.position = input.transform.position;
         sample.rotation = input.transform.rotation;
-        sample.AngularVelocity = input.GetComponent<Rigidbody>().angularVelocity;
-        sample.velocity = input.GetComponent<Rigidbody>().velocity;
-        for (int i=0; i < timelines.Count; i++)
+
+        for (int i = 0; i < timelines.Count; i++)
         {
             if (timelines[i].id == input.name)
                 timelines[i].timeData.Add(sample);
@@ -117,10 +151,39 @@ public class TimeMachinev2 : MonoBehaviour {
                     //timelines[i].rewind = false;
                     timelines[i].scroller = 2;
                 }
+                #region Set values
                 rewindableObjects[i].transform.position = timelines[i].timeData[timelines[i].scroller - 1].position;
                 rewindableObjects[i].transform.rotation = timelines[i].timeData[timelines[i].scroller - 1].rotation;
-                rewindableObjects[i].GetComponent<Rigidbody>().angularVelocity = timelines[i].timeData[timelines[i].scroller - 1].AngularVelocity;
-                rewindableObjects[i].GetComponent<Rigidbody>().velocity = timelines[i].timeData[timelines[i].scroller - 1].velocity;
+
+                Rigidbody rigidComp = rewindableObjects[i].GetComponent<Rigidbody>();
+                if (rigidComp != null)
+                {
+                    rigidComp.angularVelocity = timelines[i].timeData[timelines[i].scroller - 1].AngularVelocity;
+                    rigidComp.velocity = timelines[i].timeData[timelines[i].scroller - 1].velocity;
+                }
+
+                AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
+                if (audioComp != null)
+                {
+                    audioComp.pitch = rewindSpeed * -1;
+                    if (!audioComp.isPlaying && timelines[i].scroller > 2)
+                    {
+                        if (timelines[i].timeData[timelines[i].scroller-1].isPlaying)
+                        {
+                            audioComp.time = timelines[i].timeData[timelines[i].scroller - 1].timesample;
+                            audioComp.Play();
+                        }
+                    }
+                }
+                #endregion
+            }
+            else
+            {
+                AudioSource normalAudio = rewindableObjects[i].GetComponent<AudioSource>();
+                if (normalAudio != null)
+                {
+                    normalAudio.pitch = 1;
+                }
             }
         }
     }

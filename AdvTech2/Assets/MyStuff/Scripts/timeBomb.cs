@@ -8,8 +8,7 @@ public class timeBomb : MonoBehaviour
     Vector3 hitPosition;
     List<GameObject> collidedObjects = new List<GameObject>();
     public Material rewindMaterial, barrelMaterial;
-    public float expireTime;
-    bool sticky;
+    public float expireTime = 5;
     TimeMachinev2 myTimeMachine;
     float timer;
 
@@ -37,7 +36,7 @@ public class timeBomb : MonoBehaviour
 
         if (hasCollided)
         {
-            if (myTimeMachine.sticky)
+            if (!myTimeMachine.sticky)
             {
                 for (int i = 0; i < collidedObjects.Count; i++)
                 {

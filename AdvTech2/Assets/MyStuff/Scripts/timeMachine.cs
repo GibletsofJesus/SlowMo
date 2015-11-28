@@ -31,6 +31,21 @@ public class timeMachine : MonoBehaviour
     List<List<Vector3>> velArray = new List<List<Vector3>>();
     List<List<float>> playbackTimeArray = new List<List<float>>();
 
+    List<GameObject> audioObjects = new List<GameObject>();
+    List<audioTimeline> audioTimelines = new List<audioTimeline>();
+
+    struct audioData
+    {
+        public float timeSample;
+        public bool isPlaying;
+    }
+
+    class audioTimeline
+    {
+        public List<audioData> audioTimeData = new List<audioData>();
+        public string id;
+    }
+
     int scroll = 0;
     bool isPaused, rewind;
     float tick = 0;
@@ -39,6 +54,14 @@ public class timeMachine : MonoBehaviour
     {
         //Start Couroutine
         StartCoroutine(record());
+        
+        audioObjects = new List<GameObject>(GameObject.FindGameObjectsWithTag("Audio"));
+        for (int i=0; i < audioObjects.Count; i++)
+        {
+            audioTimeline thisOne = new audioTimeline();
+            thisOne.id = audioObjects[i].name;
+            audioTimelines.Add(thisOne);
+        }
 
         //Add objects to lists
         for (int i = 0; i < boxes.Length; i++)
@@ -84,7 +107,7 @@ public class timeMachine : MonoBehaviour
 
             for (int i = 0; i < animatedObjects.Count; i++)
             {
-                animatedObjects[i].GetComponent<Animator>().StopPlayback();
+                //animatedObjects[i].GetComponent<Animator>().StopPlayback();
             }
         }
         #endregion
@@ -115,9 +138,24 @@ public class timeMachine : MonoBehaviour
                 physicsObjects[i].GetComponent<Rigidbody>().angularVelocity = angVelArray[scroll - 1][i];
                 physicsObjects[i].GetComponent<Rigidbody>().velocity = velArray[scroll - 1][i];
             }
-            for (int i = 0; i < animatedObjects.Count; i++)
+
+            for (int i = 0; i < audioObjects.Count; i++)
             {
-                //animatedObjects[i].GetComponent<Animator>().playbackTime = playbackTimeArray[scroll - 1][i];
+                for (int j = 0; j < audioTimelines.Count; j++)
+                {
+                    if (audioTimelines[j].id == audioObjects[i].name)
+                    {
+                        audioObjects[i].GetComponent<AudioSource>().pitch = rewindSpeed * -1;
+                        if (!audioObjects[i].GetComponent<AudioSource>().isPlaying)
+                        {
+                            if (audioTimelines[i].audioTimeData[scroll - 1].isPlaying)
+                            {
+                               audioObjects[i].GetComponent<AudioSource>().time = audioTimelines[i].audioTimeData[scroll - 1].timeSample;
+                               audioObjects[i].GetComponent<AudioSource>().Play();
+                            }
+                        }
+                    }
+                }
             }
             lengthText.text = "Current Tick:" + scroll + "\nTotal Ticks " + tick;
         }
@@ -152,13 +190,17 @@ public class timeMachine : MonoBehaviour
                 SliderObject.maxValue = posArray.Count;
                 SliderObject.value = posArray.Count - 1;
                 scroll = posArray.Count;
+                //stop all audio
+                for (int i = 0; i < audioObjects.Count; i++)
+                {
+                    audioObjects[i].GetComponent<AudioSource>().Stop();
+                }
             }
 
             if (rewindSpeed > 0)
                 rewindSpeed = rewindSpeed * 2;
             else
                 rewindSpeed++;
-            Debug.Log(rewindSpeed);
         }
     
         if (Input.GetKeyDown(KeyCode.RightArrow))
@@ -224,9 +266,17 @@ public class timeMachine : MonoBehaviour
             angVel.Add(physicsObjects[i].GetComponent<Rigidbody>().angularVelocity);
             vel.Add(physicsObjects[i].GetComponent<Rigidbody>().velocity);
         }
-        for (int i = 0; i < animatedObjects.Count; i++)
+
+        audioData sample;
+        for (int i = 0; i < audioObjects.Count; i++)
         {
-            playbackTime.Add(animatedObjects[i].GetComponent<Animator>().playbackTime);
+            sample.isPlaying = audioObjects[i].GetComponent<AudioSource>().isPlaying;
+            sample.timeSample = audioObjects[i].GetComponent<AudioSource>().time;
+            for (int j = 0; j < audioTimelines.Count; j++)
+            {
+                if (audioTimelines[j].id == audioObjects[i].name)
+                    audioTimelines[j].audioTimeData.Add(sample);
+            }
         }
 
         posArray.Add(new List<Vector3>(pos));
@@ -235,14 +285,7 @@ public class timeMachine : MonoBehaviour
         velArray.Add(new List<Vector3>(vel));
         playbackTimeArray.Add(new List<float>(playbackTime));
         lengthText.text = "Current Tick:" + scroll + "\nTotal Ticks " + tick;
-        //scroll++;
         tick++;
-
-        //ticks * update time = time in seconds we've been recording
-        if (tick*updateTime > rewindDuration)
-        {
-
-        }
 
     }
 
