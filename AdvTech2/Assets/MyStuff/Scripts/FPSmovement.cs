@@ -11,8 +11,9 @@ public class FPSmovement : MonoBehaviour {
     TimeMachinev2 myTimeMachine;
 
     // Use this for initialization
-    void Start ()
+    void Start()
     {
+        Cursor.visible = false;
         projectile = Resources.Load("Sphere") as GameObject;
         myTimeMachine = GameObject.FindGameObjectWithTag("TimeMachine").GetComponent<TimeMachinev2>();
     }
@@ -44,7 +45,7 @@ public class FPSmovement : MonoBehaviour {
             posX += 1;
         }
         
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.Space))
         {
             gameObject.transform.Translate(0, 0.1f, 0);
             gameObject.GetComponent<Rigidbody>().useGravity = false;
@@ -57,7 +58,7 @@ public class FPSmovement : MonoBehaviour {
         cam.transform.rotation *= Quaternion.Euler(-rotY, 0f, 0f);
         #endregion
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetMouseButtonDown(1))
         {
             RaycastHit hit;
             if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, Mathf.Infinity))
@@ -80,12 +81,37 @@ public class FPSmovement : MonoBehaviour {
         }
 
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            Time.timeScale = 0.25f;
+        }
+
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            Time.timeScale = 1.0f;
+        }
+
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        if (Cursor.lockState == CursorLockMode.Locked)
+            Cursor.visible = false;
+
+        if (Input.GetMouseButtonDown(0))
         {
             GameObject shootme = Instantiate(projectile) as GameObject;
             shootme.transform.position = transform.position + cam.transform.forward*5;
             shootme.GetComponent<Rigidbody>().velocity = cam.transform.forward * 25;
         }
 
+    }
+
+    public void lockMouse()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 }

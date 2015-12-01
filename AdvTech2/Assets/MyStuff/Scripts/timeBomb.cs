@@ -10,6 +10,8 @@ public class timeBomb : MonoBehaviour
     public float expireTime = 5;
     TimeMachinev2 myTimeMachine;
     float timer;
+    bool scaleMe;
+    float startScale, addScale = 0.0f;
 
     void Start()
     {
@@ -49,6 +51,13 @@ public class timeBomb : MonoBehaviour
             }
 
         }
+
+        if (scaleMe && transform.localScale.x < 2.5)
+        {
+            addScale += 0.1f;
+            transform.localScale = new Vector3(startScale + addScale, startScale+ addScale, startScale + addScale);
+        }
+
     }
 
     void OnCollisionEnter(Collision collision)
@@ -58,9 +67,15 @@ public class timeBomb : MonoBehaviour
             collidedObjects.Add(collision.gameObject);
         }
 
+        if (!scaleMe)
+        {
+            scaleMe = true;
+            startScale = transform.localScale.x;
+        }
+
         gameObject.GetComponent<Renderer>().material.SetFloat("_Alpha", 0);
         hasCollided = true;
-        transform.localScale = new Vector3(2.5f, 2.5f, 2.5f);
+
         if (hitPosition == Vector3.zero)
             hitPosition = transform.position;
 

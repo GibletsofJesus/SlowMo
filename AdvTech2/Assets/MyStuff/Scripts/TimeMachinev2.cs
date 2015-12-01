@@ -93,8 +93,51 @@ public class TimeMachinev2 : MonoBehaviour {
 
         recordingText.enabled = recording;
 
+        #region reset function
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            //Reset all objects, delete rewind data
+            for (int i = 0; i < timelines.Count; i++)
+            {
+                //Set colour
+                rewindableObjects[i].transform.position = timelines[i].timeData[2].position;
+                rewindableObjects[i].transform.rotation = timelines[i].timeData[2].rotation;
+
+                Rigidbody rigidComp = rewindableObjects[i].GetComponent<Rigidbody>();
+                if (rigidComp != null)
+                {
+                    rigidComp.angularVelocity = timelines[i].timeData[2].AngularVelocity;
+                    rigidComp.velocity = timelines[i].timeData[2].velocity;
+                }
+
+                AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
+                if (audioComp != null)
+                {
+                    audioComp.pitch = 1 * Time.timeScale;
+                    if (!audioComp.isPlaying && timelines[i].scroller > 2)
+                    {
+                        if (timelines[i].timeData[2].isPlaying)
+                        {
+                            audioComp.time = timelines[i].timeData[2].timesample;
+                            audioComp.Play();
+                        }
+                    }
+                }
+                recording = true;
+                timelines[i].scroller = 0;
+                rewindableObjects[i].GetComponent<Renderer>().material.color = Color.red;
+                timelines[i].rewind = false;
+                timelines[i].timeData.Clear();
+            }
+        }
+        #endregion
+
         if (Input.GetKeyDown(KeyCode.F))
+        {
             recording = !recording;
+            if (recording)
+                StartCoroutine(record());
+        }
 
         rewinder();
 
@@ -185,7 +228,7 @@ public class TimeMachinev2 : MonoBehaviour {
                 AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
                 if (audioComp != null)
                 {
-                    audioComp.pitch = rewindSpeed * -1;
+                    audioComp.pitch = rewindSpeed * -1 * Time.timeScale;
                     if (!audioComp.isPlaying && timelines[i].scroller > 2)
                     {
                         if (timelines[i].timeData[timelines[i].scroller-1].isPlaying)
@@ -203,7 +246,7 @@ public class TimeMachinev2 : MonoBehaviour {
                 AudioSource normalAudio = rewindableObjects[i].GetComponent<AudioSource>();
                 if (normalAudio != null)
                 {
-                    normalAudio.pitch = 1;
+                    normalAudio.pitch = 1 * Time.timeScale;
                 }
             }
         }
