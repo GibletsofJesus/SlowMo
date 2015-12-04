@@ -42,8 +42,8 @@ public class timeBomb : MonoBehaviour
                 {
                     Physics.IgnoreCollision(collidedObjects[i].GetComponent<Collider>(), GetComponent<Collider>());
                 }
-                if (transform.position.y < 1)
-                    transform.Translate(0, 1, 0);
+               // if (transform.position.y < 1)
+                   // transform.Translate(0, 1, 0);
             }
             else
             {

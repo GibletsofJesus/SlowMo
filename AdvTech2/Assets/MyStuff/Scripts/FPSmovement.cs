@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class FPSmovement : MonoBehaviour {
 
@@ -9,10 +11,19 @@ public class FPSmovement : MonoBehaviour {
     public Camera cam;
     GameObject projectile;
     TimeMachinev2 myTimeMachine;
+    List<rewindData> playerData = new List<rewindData>();
+    int scroll=2;
+
+    public float rewindJuice;
+
+    public Color hudStartColor, hudEndColour;
+    public Slider slider;
+    public Image sliderFill;
 
     // Use this for initialization
     void Start()
     {
+        rewindJuice = slider.maxValue;
         Cursor.visible = false;
         projectile = Resources.Load("Sphere") as GameObject;
         myTimeMachine = GameObject.FindGameObjectWithTag("TimeMachine").GetComponent<TimeMachinev2>();
@@ -21,6 +32,7 @@ public class FPSmovement : MonoBehaviour {
 	// Update is called once per frame
 	void Update()
     {
+        updatePlayerData();
         float rotX = CrossPlatformInputManager.GetAxis("Mouse X") * mouseSensitivity;
         float rotY = CrossPlatformInputManager.GetAxis("Mouse Y") * mouseSensitivity;
 
@@ -45,11 +57,17 @@ public class FPSmovement : MonoBehaviour {
             posX += 1;
         }
         
+        #region jetpack
         if (Input.GetKey(KeyCode.Space))
         {
+            //if (gameObject.GetComponent<Rigidbody>().velocity.y < 0.01)            
+            //gameObject.GetComponent<Rigidbody>().AddForce(new Vector3(0, 35, 0), ForceMode.Impulse);
+
             gameObject.transform.Translate(0, 0.1f, 0);
             gameObject.GetComponent<Rigidbody>().useGravity = false;
+
         }
+        #endregion
         else
             gameObject.GetComponent<Rigidbody>().useGravity = true;
 
@@ -58,27 +76,36 @@ public class FPSmovement : MonoBehaviour {
         cam.transform.rotation *= Quaternion.Euler(-rotY, 0f, 0f);
         #endregion
 
+        #region right click rewind
         if (Input.GetMouseButtonDown(1))
         {
-            RaycastHit hit;
-            if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, Mathf.Infinity))
+            if (rewindJuice > 10)
             {
-                if (hit.collider.tag == "Phys")
+                rewindJuice -= 10;
+                RaycastHit hit;
+                if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, Mathf.Infinity))
                 {
-                    for (int j = 0; j < myTimeMachine.timelines.Count; j++)
+                    if (hit.collider.tag == "Phys")
                     {
-                        if (myTimeMachine.timelines[j].id == hit.transform.gameObject.name)
+                        if (myTimeMachine != null)
                         {
-                            if (!myTimeMachine.timelines[j].rewind)
+                            for (int j = 0; j < myTimeMachine.timelines.Count; j++)
                             {
-                                myTimeMachine.timelines[j].rewind = true;
-                                myTimeMachine.timelines[j].scroller = myTimeMachine.scroll - 1;
+                                if (myTimeMachine.timelines[j].id == hit.transform.gameObject.name)
+                                {
+                                    if (!myTimeMachine.timelines[j].rewind)
+                                    {
+                                        myTimeMachine.timelines[j].rewind = true;
+                                        myTimeMachine.timelines[j].scroller = myTimeMachine.scroll - 1;
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        #endregion
 
 
         if (Input.GetKeyDown(KeyCode.LeftShift))
@@ -102,11 +129,79 @@ public class FPSmovement : MonoBehaviour {
 
         if (Input.GetMouseButtonDown(0))
         {
-            GameObject shootme = Instantiate(projectile) as GameObject;
-            shootme.transform.position = transform.position + cam.transform.forward*5;
-            shootme.GetComponent<Rigidbody>().velocity = cam.transform.forward * 25;
+            if (rewindJuice > 50)
+            {
+                rewindJuice -= 50;
+                GameObject shootme = Instantiate(projectile) as GameObject;
+                shootme.transform.position = transform.position + cam.transform.forward * 5;
+                shootme.GetComponent<Rigidbody>().velocity = cam.transform.forward * 25;
+            }
         }
 
+        #region player rewind
+
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            scroll = 0;
+        }
+
+        if (Input.GetKey(KeyCode.V))
+        {
+            if (rewindJuice > 0)
+            {
+                scroll++;
+                scroll++;
+                rewindJuice--;
+
+                if (scroll > playerData.Count)
+                {
+                    scroll = playerData.Count;
+                    rewindJuice++;
+                }
+                transform.position = playerData[playerData.Count - scroll].position;
+                GetComponent<Rigidbody>().angularVelocity = playerData[playerData.Count - scroll].AngularVelocity;
+                GetComponent<Rigidbody>().velocity = playerData[playerData.Count - scroll].velocity;
+            }
+        }
+        if (Input.GetKeyUp(KeyCode.V))
+        {
+            if (scroll > 2)
+                playerData.RemoveRange(playerData.Count - scroll, scroll - 1);
+        }
+        if (rewindJuice > slider.maxValue)
+            rewindJuice = slider.maxValue;
+
+        slider.value = rewindJuice;
+        sliderFill.color = Color.Lerp(hudEndColour, hudStartColor, rewindJuice / slider.maxValue);
+
+        #endregion
+    }
+
+    public struct rewindData
+    {
+        public Vector3 position;
+        public Vector3 AngularVelocity;
+        public Vector3 velocity;
+    }
+
+    void updatePlayerData()
+    {
+        rewindData sample;
+        Rigidbody rigidComp = GetComponent<Rigidbody>();
+        if (rigidComp != null)
+        {
+            sample.AngularVelocity = rigidComp.angularVelocity;
+            sample.velocity = rigidComp.velocity;
+        }
+        else
+        {
+            sample.AngularVelocity = Vector3.zero;
+            sample.velocity = Vector3.zero;
+        }
+
+        sample.position = transform.position;
+
+        playerData.Add(sample);
     }
 
     public void lockMouse()

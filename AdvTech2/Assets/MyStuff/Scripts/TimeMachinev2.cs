@@ -9,6 +9,7 @@ public class TimeMachinev2 : MonoBehaviour {
     public float rewindDuration = 5.0f;
     public Text recordingText;
     public Text stickyText;
+    public bool renderHud;
 
     public bool resumeWhenFinishedRewinding;
 
@@ -76,22 +77,24 @@ public class TimeMachinev2 : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.B))
+        if (renderHud)
         {
-            sticky = !sticky;
-            if (sticky)
+            if (Input.GetKeyDown(KeyCode.B))
             {
-                stickyText.text = "Enabled";
-                stickyText.color = Color.green;
+                sticky = !sticky;
+                if (sticky)
+                {
+                    stickyText.text = "Enabled";
+                    stickyText.color = Color.green;
+                }
+                else
+                {
+                    stickyText.text = "Disabled";
+                    stickyText.color = Color.red;
+                }
             }
-            else
-            {
-                stickyText.text = "Disabled";
-                stickyText.color = Color.red;
-            }
+            recordingText.enabled = recording;
         }
-
-        recordingText.enabled = recording;
 
         #region reset function
         if (Input.GetKeyDown(KeyCode.R))
@@ -223,6 +226,7 @@ public class TimeMachinev2 : MonoBehaviour {
                 {
                     rigidComp.angularVelocity = timelines[i].timeData[timelines[i].scroller - 1].AngularVelocity;
                     rigidComp.velocity = timelines[i].timeData[timelines[i].scroller - 1].velocity;
+                    rigidComp.isKinematic = true;
                 }
 
                 AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
@@ -231,7 +235,7 @@ public class TimeMachinev2 : MonoBehaviour {
                     audioComp.pitch = rewindSpeed * -1 * Time.timeScale;
                     if (!audioComp.isPlaying && timelines[i].scroller > 2)
                     {
-                        if (timelines[i].timeData[timelines[i].scroller-1].isPlaying)
+                        if (timelines[i].timeData[timelines[i].scroller - 1].isPlaying)
                         {
                             audioComp.time = timelines[i].timeData[timelines[i].scroller - 1].timesample;
                             audioComp.Play();
@@ -247,6 +251,11 @@ public class TimeMachinev2 : MonoBehaviour {
                 if (normalAudio != null)
                 {
                     normalAudio.pitch = 1 * Time.timeScale;
+                }
+                Rigidbody rigidComp = rewindableObjects[i].GetComponent<Rigidbody>();
+                if (rigidComp != null)
+                {
+                    rigidComp.isKinematic = false;
                 }
             }
         }
