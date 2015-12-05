@@ -3,27 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class TimeMachinev2 : MonoBehaviour {
+public class timeMachine_v3 : MonoBehaviour {
     
     public float updateTime = 0.01f;
     public float rewindDuration = 5.0f;
-    public Text recordingText;
-    public Text stickyText;
-    public bool renderHud;
 
     public bool resumeWhenFinishedRewinding;
 
     [HideInInspector]
     public int scroll = 0;
-    [HideInInspector]
-    public bool recording = true;
+    bool recording = true;
     public int rewindSpeed = 2;
 
     public bool sticky; //Toggle sticky bombs
 
     List<GameObject> rewindableObjects = new List<GameObject>();
     public List<timeline> timelines = new List<timeline>();
-    
+
     // Use this for initialization
     void Start()
     {
@@ -78,25 +74,6 @@ public class TimeMachinev2 : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(recording);
-        if (renderHud)
-        {
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                sticky = !sticky;
-                if (sticky)
-                {
-                    stickyText.text = "Enabled";
-                    stickyText.color = Color.green;
-                }
-                else
-                {
-                    stickyText.text = "Disabled";
-                    stickyText.color = Color.red;
-                }
-            }
-            recordingText.enabled = recording;
-        }
 
         #region reset function
         if (Input.GetKeyDown(KeyCode.R))
@@ -228,7 +205,6 @@ public class TimeMachinev2 : MonoBehaviour {
                 {
                     rigidComp.angularVelocity = timelines[i].timeData[timelines[i].scroller - 1].AngularVelocity;
                     rigidComp.velocity = timelines[i].timeData[timelines[i].scroller - 1].velocity;
-                    rigidComp.isKinematic = true;
                 }
 
                 AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
@@ -254,13 +230,8 @@ public class TimeMachinev2 : MonoBehaviour {
                 {
                     normalAudio.pitch = 1 * Time.timeScale;
                 }
-                Rigidbody rigidComp = rewindableObjects[i].GetComponent<Rigidbody>();
-                if (rigidComp != null)
-                {
-                    rigidComp.isKinematic = false;
-                }
             }
         }
     }
-    
+
 }

@@ -20,11 +20,14 @@ public class spin : MonoBehaviour {
     {
         if (col.gameObject.CompareTag("Player"))
         {
-            col.gameObject.GetComponent<FPSmovement>().rewindJuice += juiceBonus;
-            GetComponent<AudioSource>().Play();
-            Destroy(gameObject.GetComponent<MeshRenderer>());
-            Destroy(gameObject.GetComponent<BoxCollider>());
-            Destroy(gameObject, 2);
+            if (col.gameObject.GetComponent<FPSmovement>().rewindJuice != col.gameObject.GetComponent<FPSmovement>().slider.maxValue)
+            {
+                col.gameObject.GetComponent<FPSmovement>().rewindJuice += juiceBonus;
+                GetComponent<AudioSource>().Play();
+                Destroy(gameObject.GetComponent<MeshRenderer>());
+                Destroy(gameObject.GetComponent<BoxCollider>());
+                Destroy(gameObject, 2);
+            }
         }
     }
 }

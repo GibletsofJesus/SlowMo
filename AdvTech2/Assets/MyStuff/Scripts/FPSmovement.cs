@@ -11,6 +11,7 @@ public class FPSmovement : MonoBehaviour {
     public Camera cam;
     GameObject projectile;
     TimeMachinev2 myTimeMachine;
+    bool allowJetpack;
     List<rewindData> playerData = new List<rewindData>();
     int scroll=2;
 
@@ -57,23 +58,25 @@ public class FPSmovement : MonoBehaviour {
             posX += 1;
         }
         
+        gameObject.transform.Translate(posX*moveSpeed, 0, posZ*moveSpeed);
+        gameObject.transform.localRotation *= Quaternion.Euler(0f, rotX, 0f);
+        cam.transform.rotation *= Quaternion.Euler(-rotY, 0f, 0f);
+        #endregion
+
         #region jetpack
         if (Input.GetKey(KeyCode.Space))
         {
             //if (gameObject.GetComponent<Rigidbody>().velocity.y < 0.01)            
             //gameObject.GetComponent<Rigidbody>().AddForce(new Vector3(0, 35, 0), ForceMode.Impulse);
 
-            gameObject.transform.Translate(0, 0.1f, 0);
-            gameObject.GetComponent<Rigidbody>().useGravity = false;
-
+            if (allowJetpack)
+            {
+                gameObject.transform.Translate(0, 0.1f, 0);
+                gameObject.GetComponent<Rigidbody>().useGravity = false;
+            }
         }
-        #endregion
         else
             gameObject.GetComponent<Rigidbody>().useGravity = true;
-
-        gameObject.transform.Translate(posX*moveSpeed, 0, posZ*moveSpeed);
-        gameObject.transform.localRotation *= Quaternion.Euler(0f, rotX, 0f);
-        cam.transform.rotation *= Quaternion.Euler(-rotY, 0f, 0f);
         #endregion
 
         #region right click rewind
@@ -107,7 +110,7 @@ public class FPSmovement : MonoBehaviour {
         }
         #endregion
 
-
+        #region shitty slowmo
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             Time.timeScale = 0.25f;
@@ -117,7 +120,9 @@ public class FPSmovement : MonoBehaviour {
         {
             Time.timeScale = 1.0f;
         }
+        #endregion
 
+        #region mouse things
         if (Input.GetKey(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
@@ -137,6 +142,7 @@ public class FPSmovement : MonoBehaviour {
                 shootme.GetComponent<Rigidbody>().velocity = cam.transform.forward * 25;
             }
         }
+        #endregion
 
         #region player rewind
 
@@ -168,13 +174,14 @@ public class FPSmovement : MonoBehaviour {
             if (scroll > 2)
                 playerData.RemoveRange(playerData.Count - scroll, scroll - 1);
         }
+        #endregion
+
         if (rewindJuice > slider.maxValue)
             rewindJuice = slider.maxValue;
 
         slider.value = rewindJuice;
         sliderFill.color = Color.Lerp(hudEndColour, hudStartColor, rewindJuice / slider.maxValue);
 
-        #endregion
     }
 
     public struct rewindData
@@ -206,7 +213,8 @@ public class FPSmovement : MonoBehaviour {
 
     public void lockMouse()
     {
-        Cursor.lockState = CursorLockMode.Locked;
+        if (Cursor.lockState != CursorLockMode.Locked)
+            Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 }
