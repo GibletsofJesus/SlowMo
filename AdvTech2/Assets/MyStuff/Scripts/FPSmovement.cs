@@ -2,6 +2,7 @@
 using UnityStandardAssets.CrossPlatformInput;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine.UI;
 
 public class FPSmovement : MonoBehaviour {
@@ -11,8 +12,9 @@ public class FPSmovement : MonoBehaviour {
     public Camera cam;
     GameObject projectile;
     TimeMachinev2 myTimeMachine;
-    bool allowJetpack;
+    public bool allowJetpack;
     List<rewindData> playerData = new List<rewindData>();
+    List<ghostData> SpookyGhostData = new List<ghostData>();
     int scroll=2;
 
     public float rewindJuice;
@@ -184,6 +186,65 @@ public class FPSmovement : MonoBehaviour {
 
     }
 
+    #region spookey ghost things
+
+    public void saveToFile()
+    {
+        var time = System.DateTime.Now;
+        using (StreamWriter sw = new StreamWriter("Ghost "+time.Year + "-" + time.Month + "-" + time.Day + " " + time.Hour + time.Minute+".ghost"))
+        {
+            for (int i = 0; i < SpookyGhostData.Count; i++)
+            {
+                sw.Write(SpookyGhostData[i].position);
+                sw.WriteLine(" R " + SpookyGhostData[i].rotation);
+            }
+        }
+        
+       /* var filesToRead = Directory.GetFiles("Ghost*.ghost");
+        Debug.Log(filesToRead);*/
+    }
+
+    public void textReader()
+    {
+        using (StreamReader sr = new StreamReader("Ghost"))
+        {
+            List<Vector3> pos = new List<Vector3>();
+            List<Quaternion> rot = new List<Quaternion>();
+            while (!sr.EndOfStream)
+            {
+                ghostData boo;
+                string line = sr.ReadLine();
+                line = line.Replace("(", "");
+                line = line.Replace(")", "");
+                line = line.Replace(" ", "");
+                string[] splitString = line.Split('R');
+
+                string[] mo = splitString[0].Split(',');
+                var x = float.Parse(mo[0]);
+                var y = float.Parse(mo[1]);
+                var z = float.Parse(mo[2]);
+                pos.Add(new Vector3(x,y,z));
+
+                string[] bo = splitString[1].Split(',');
+                var r1 = float.Parse(bo[0]);
+                var r2 = float.Parse(bo[1]);
+                var r3 = float.Parse(bo[2]);
+                var r4 = float.Parse(bo[3]);
+                rot.Add(new Quaternion(r1,r2,r3,r4));
+            }
+            GameObject MrSpooks = Instantiate(Resources.Load("ghost") as GameObject) as GameObject;
+            MrSpooks.GetComponent<GhostScript>().sup(pos, rot);
+        }
+    }
+
+    #endregion
+
+    public struct ghostData
+    {
+        public Vector3 position;
+        public Quaternion rotation;
+    }
+
     public struct rewindData
     {
         public Vector3 position;
@@ -194,6 +255,8 @@ public class FPSmovement : MonoBehaviour {
     void updatePlayerData()
     {
         rewindData sample;
+        ghostData boo;//!
+
         Rigidbody rigidComp = GetComponent<Rigidbody>();
         if (rigidComp != null)
         {
@@ -207,8 +270,11 @@ public class FPSmovement : MonoBehaviour {
         }
 
         sample.position = transform.position;
-
         playerData.Add(sample);
+
+        boo.position = transform.position;
+        boo.rotation = transform.rotation;
+        SpookyGhostData.Add(boo);
     }
 
     public void lockMouse()

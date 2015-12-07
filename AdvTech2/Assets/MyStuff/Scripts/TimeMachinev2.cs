@@ -78,7 +78,6 @@ public class TimeMachinev2 : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(recording);
         if (renderHud)
         {
             if (Input.GetKeyDown(KeyCode.B))
