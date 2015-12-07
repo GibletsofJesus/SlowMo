@@ -206,7 +206,7 @@ public class FPSmovement : MonoBehaviour {
 
     public void textReader()
     {
-        using (StreamReader sr = new StreamReader("Ghost"))
+        using (StreamReader sr = new StreamReader("ghost.txt"))
         {
             List<Vector3> pos = new List<Vector3>();
             List<Quaternion> rot = new List<Quaternion>();
