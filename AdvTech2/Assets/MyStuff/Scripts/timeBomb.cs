@@ -36,7 +36,7 @@ public class timeBomb : MonoBehaviour
 
         if (hasCollided)
         {
-            if (!myTimeMachine.sticky)
+            if (!myTimeMachine.stickyTimeBombs)
             {
                 for (int i = 0; i < collidedObjects.Count; i++)
                 {
@@ -88,7 +88,7 @@ public class timeBomb : MonoBehaviour
                     if (!myTimeMachine.timelines[j].rewind)
                     {
                         myTimeMachine.timelines[j].rewind = true;
-                        myTimeMachine.timelines[j].scroller = myTimeMachine.scroll - 1;
+                        myTimeMachine.timelines[j].scroller = myTimeMachine.timelines[j].timeData.Count - 1;
                     }
                 }
             }

@@ -15,7 +15,7 @@ public class timeMachine_v3 : MonoBehaviour {
     bool recording = true;
     public int rewindSpeed = 2;
 
-    public bool sticky; //Toggle sticky bombs
+    public bool stickyBombs, allowReset; //Toggle sticky bombs
 
     List<GameObject> rewindableObjects = new List<GameObject>();
     public List<timeline> timelines = new List<timeline>();
@@ -75,44 +75,47 @@ public class timeMachine_v3 : MonoBehaviour {
     void Update()
     {
 
-        #region reset function
-        if (Input.GetKeyDown(KeyCode.R))
+        if (allowReset)
         {
-            //Reset all objects, delete rewind data
-            for (int i = 0; i < timelines.Count; i++)
+            #region reset function
+            if (Input.GetKeyDown(KeyCode.R))
             {
-                //Set colour
-                rewindableObjects[i].transform.position = timelines[i].timeData[2].position;
-                rewindableObjects[i].transform.rotation = timelines[i].timeData[2].rotation;
-
-                Rigidbody rigidComp = rewindableObjects[i].GetComponent<Rigidbody>();
-                if (rigidComp != null)
+                //Reset all objects, delete rewind data
+                for (int i = 0; i < timelines.Count; i++)
                 {
-                    rigidComp.angularVelocity = timelines[i].timeData[2].AngularVelocity;
-                    rigidComp.velocity = timelines[i].timeData[2].velocity;
-                }
+                    //Set colour
+                    rewindableObjects[i].transform.position = timelines[i].timeData[2].position;
+                    rewindableObjects[i].transform.rotation = timelines[i].timeData[2].rotation;
 
-                AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
-                if (audioComp != null)
-                {
-                    audioComp.pitch = 1 * Time.timeScale;
-                    if (!audioComp.isPlaying && timelines[i].scroller > 2)
+                    Rigidbody rigidComp = rewindableObjects[i].GetComponent<Rigidbody>();
+                    if (rigidComp != null)
                     {
-                        if (timelines[i].timeData[2].isPlaying)
+                        rigidComp.angularVelocity = timelines[i].timeData[2].AngularVelocity;
+                        rigidComp.velocity = timelines[i].timeData[2].velocity;
+                    }
+
+                    AudioSource audioComp = rewindableObjects[i].GetComponent<AudioSource>();
+                    if (audioComp != null)
+                    {
+                        audioComp.pitch = 1 * Time.timeScale;
+                        if (!audioComp.isPlaying && timelines[i].scroller > 2)
                         {
-                            audioComp.time = timelines[i].timeData[2].timesample;
-                            audioComp.Play();
+                            if (timelines[i].timeData[2].isPlaying)
+                            {
+                                audioComp.time = timelines[i].timeData[2].timesample;
+                                audioComp.Play();
+                            }
                         }
                     }
+                    recording = true;
+                    timelines[i].scroller = 0;
+                    rewindableObjects[i].GetComponent<Renderer>().material.color = Color.red;
+                    timelines[i].rewind = false;
+                    timelines[i].timeData.Clear();
                 }
-                recording = true;
-                timelines[i].scroller = 0;
-                rewindableObjects[i].GetComponent<Renderer>().material.color = Color.red;
-                timelines[i].rewind = false;
-                timelines[i].timeData.Clear();
             }
+            #endregion
         }
-        #endregion
 
         if (Input.GetKeyDown(KeyCode.F))
         {

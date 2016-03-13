@@ -89,6 +89,9 @@ public class timeMachine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.M))
+            Application.LoadLevel(0);
+
         #region On spacebar;
         if (Input.GetKeyDown(KeyCode.Space))
         {
